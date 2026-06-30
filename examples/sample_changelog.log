@@ -1,0 +1,16 @@
+[2026-06-15 13:55:22] [amans] SESSION START: host=192.168.55.8, SNMP=OK, dry_run=False
+[2026-06-15 13:55:59] [amans] SWITCH ON requested: element=M, electrode=1, channel=u501, host=192.168.55.8, dry_run=False
+[2026-06-15 13:55:59] [amans] SWITCH ON result: element=M, electrode=1, channel=u501, ok=True
+[2026-06-15 13:56:08] [amans] SWITCH OFF requested: element=M, electrode=0, channel=u500, host=192.168.55.8, dry_run=False
+[2026-06-15 13:56:08] [amans] SWITCH OFF result: element=M, electrode=0, channel=u500, ok=True
+[2026-06-15 13:58:33] [amans] SESSION START: host=192.168.55.8, SNMP=OK, dry_run=False
+[2026-06-15 14:02:15] [amans] PUSH requested: element=M, amplitudes={'Q': 1.0, 'H': 3.0, 'O': 3.0, 'De': 1.0, 'Do': 1.0}, corrections={}, host=192.168.55.8, dry_run=False
+[2026-06-15 14:02:16] [amans] PUSH result: element=M, sent=24, failed=0, host=192.168.55.8
+[2026-06-15 14:02:21] [amans] SWITCH ON requested: element=M, channels=24, host=192.168.55.8, dry_run=False
+[2026-06-15 14:02:23] [amans] SWITCH ON result: element=M, ok=24, failed=0, host=192.168.55.8
+[2026-06-15 14:03:21] [amans] SWITCH OFF requested: element=M, channels=24, host=192.168.55.8, dry_run=False
+[2026-06-15 14:03:22] [amans] SWITCH OFF result: element=M, ok=24, failed=0, host=192.168.55.8
+[2026-06-15 14:03:40] [amans] ZERO requested: element=M, channels=24, host=192.168.55.8, dry_run=False
+[2026-06-15 14:03:41] [amans] ZERO result: element=M, sent=24, failed=0, host=192.168.55.8
+[2026-06-15 14:04:59] [amans] SESSION START: host=192.168.55.8, SNMP=OK, dry_run=False
+[2026-06-24 18:55:42] [amans] SESSION START: host=192.168.55.8, SNMP=OK, dry_run=False

@@ -1,0 +1,4 @@
+numpy==2.5.0
+puresnmp==2.0.1
+t61codec==1.0.1
+x690==1.0.0.post1
