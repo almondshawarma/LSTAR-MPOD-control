@@ -29,11 +29,20 @@ instrument's spec limits or the hardware's absolute ceiling.
   {Q: 1500, O: -200}   ──>   [+1300, -1700, +1300, ...]  ──>  SNMP SET x 24 channels
 ```
 
-![Screenshot of the GUI](assets/guiscreenshot.png)
-
 The project has a CLI (`lstar_mpod_ctl.py`) and a GUI (`lstar_gui.py`) that share
 the same underlying physics and safety code, but neither one duplicates the other's
 logic.
+
+## Screenshots
+
+The GUI itself:
+![Screenshot of the GUI](assets/gui_screenshot.png)
+
+A push confirmation for a dry run:
+![Screenshot of the push confirmation (dry-run)](assets/dryrun_confirmations_creenshot.png)
+
+A probe using the CLI:
+![CLI probe](assets/cli_screenshot.png)
 
 ## Why it's organized the way it is
 
@@ -72,7 +81,12 @@ which kind of module it's ultimately writing to, and all can be taken of during 
 can't be imported, `lstar_gui.py` falls back to stub physics/SNMP functions and
 keeps running in diagram-only / dry-run mode. You can open the beamline diagram and
 click through every element with zero hardware dependencies,which is useful for
-demonstrating the tool, and for anyone reviewing the design without lab access.
+demonstrating the tool, and for anyone reviewing the design without lab access. 
+Even without the same lab setup, if libraries and dependencies *are* installed the 
+GUI can be used to probe other MPODs, read, write, and switch any available channels 
+on/off using the crate's IP.
+
+![GUI manual channel control](assets/manual_control_screenshot.png)
 
 **Every hardware-affecting action is logged.** Pushes, zeroes, and channel
 on/off switches write an append-only line to a changelog (who, what, when, before
