@@ -94,7 +94,7 @@ on/off using the crate's IP.
 **Every hardware-affecting action is logged.** Pushes, zeroes, and channel
 on/off switches write an append-only line to a changelog (who, what, when, before
 state, result), making a basic audit trail for a system that's writing real voltages to
-real electrodes.
+real electrodes. See [a sample changelog](examples/sample_changelog.log)
 
 ## How it got here
 
