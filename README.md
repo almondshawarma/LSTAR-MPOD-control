@@ -2,7 +2,9 @@
 
 This is a production control system for the electrostatic multipole electrodes of the **L**ight-ion guide **S**eparator for **T**exas A&M's K150 **R**adioactive beams (LSTAR),
 the isobar separator beamline at the Texas A&M Cyclotron Institute, built for
-the TAMUTRAP experiment.
+the for the Low-Energy Radioactive ion beam Area (LERA) primarily for TAMUTRAP,
+Nuclear Electroweak Properties in Trap Using Near-degenerate Energy states (NEPTUNE)
+and laser spectrometer end stations.
 
 TAMUTRAP measures β-ν angular correlations in precision beta decay using a
 cylindrical Penning trap, searching for physics beyond the Standard Model with extreme precision. 
@@ -22,7 +24,9 @@ Each LSTAR element is a ring of independently-wired rods (4, 6, or
 from a much smaller set of physics parameters (quadrupole strength, hexapole
 strength, octupole strength, etc.) then pushed out over the network connection to the
 correct crate channel, with the correct sign, without exceeding either the
-instrument's spec limits or the hardware's absolute ceiling.
+instrument's spec limits or the hardware's absolute ceiling. While LSTAR's most impressive
+capabilities comefromits two 62.5° dipole magnets, the electrostatic elements are vital for
+shaping and focusing the beam.
 
 ```
    physics intent              electrode voltages           network writes
