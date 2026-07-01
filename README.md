@@ -36,12 +36,15 @@ logic.
 ## Screenshots
 
 The GUI itself:
+
 ![Screenshot of the GUI](assets/gui_screenshot.png)
 
 A push confirmation for a dry run:
+
 ![Screenshot of the push confirmation (dry-run)](assets/dryrun_confirmations_creenshot.png)
 
 A probe using the CLI:
+
 ![CLI probe](assets/cli_screenshot.png)
 
 ## Why it's organized the way it is
