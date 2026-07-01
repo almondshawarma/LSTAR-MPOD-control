@@ -29,6 +29,8 @@ instrument's spec limits or the hardware's absolute ceiling.
   {Q: 1500, O: -200}   ──>   [+1300, -1700, +1300, ...]  ──>  SNMP SET x 24 channels
 ```
 
+![Screenshot of the GUI](assets\Screenshot 2026-06-25 112234.png)
+
 The project has a CLI (`lstar_mpod_ctl.py`) and a GUI (`lstar_gui.py`) that share
 the same underlying physics and safety code, but neither one duplicates the other's
 logic.
