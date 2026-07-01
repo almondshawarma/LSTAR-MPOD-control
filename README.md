@@ -11,8 +11,8 @@ cylindrical Penning trap, searching for physics beyond the Standard Model with e
 
 To allow for beta decay to even be measured in the first place, the cyclotron creates
 a "cocktail" of various, extremely hot ions. These ions get thermalized, and then 
-LSTAR's multipole electrodes shape and clean the beam, with a M/ΔM ≥ 5000.
-Every one of those electrodes is a high-voltage channel on a WIENER MPOD crate that
+LSTAR's multipole electrodes shape and clean the beam, with a M/ΔM ≥ 5000 achieved by two 62.5° dipole magnets.
+Every one of those electrodes is connected to a high-voltage channel on a WIENER MPOD crate that
 this project talks to over SNMP.
 
 This repo is both the thing that runs the hardware, and a writeup of how it's built.
@@ -24,9 +24,7 @@ Each LSTAR element is a ring of independently-wired rods (4, 6, or
 from a much smaller set of physics parameters (quadrupole strength, hexapole
 strength, octupole strength, etc.) then pushed out over the network connection to the
 correct crate channel, with the correct sign, without exceeding either the
-instrument's spec limits or the hardware's absolute ceiling. While LSTAR's most impressive
-capabilities comefromits two 62.5° dipole magnets, the electrostatic elements are vital for
-shaping and focusing the beam.
+instrument's spec limits or the hardware's absolute ceiling.
 
 ```
    physics intent              electrode voltages           network writes
