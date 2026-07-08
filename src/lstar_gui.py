@@ -1247,18 +1247,22 @@ class ChannelControlPanel(ttk.Frame):
     Tk variables off `app` instead of duplicating them.
     """
 
-    _COLS   = ("channel", "name", "vset", "vmeas", "iset", "imeas", "switch", "status")
-    _HDRS   = {"channel": "Channel", "name": "Name", "vset": "V_set (V)",
+    _COLS   = ("channel", "vset", "vmeas", "iset", "imeas", "switch", "status")
+    _HDRS   = {"channel": "Channel", "vset": "V_set (V)",
                "vmeas": "V_meas (V)", "iset": "I_lim (mA)", "imeas": "I_meas (mA)",
                "switch": "Switch", "status": "Status"}
-    _WIDTHS = {"channel": 70, "name": 90, "vset": 80, "vmeas": 80,
+    _WIDTHS = {"channel": 70, "vset": 80, "vmeas": 80,
                "iset": 80, "imeas": 80, "switch": 70, "status": 180}
+
+    _DEFAULT_INTERVAL_MS = 1000   # auto-refresh default, user-editable
+    _MIN_INTERVAL_MS     = 200    # floor to avoid hammering the MPOD
 
     def __init__(self, parent: tk.Widget, app: "LSTARApp", **kw):
         super().__init__(parent, **kw)
         self._app  = app
         self._rows: dict[str, dict] = {}
         self._sort_state: dict[str, bool] = {}
+        self._autorefresh_job: Optional[str] = None
         self._build()
 
     # ── Layout ───────────────────────────────────────────────────────────────
@@ -1275,6 +1279,19 @@ class ChannelControlPanel(ttk.Frame):
         ttk.Entry(bar, textvariable=self._filter_var, width=14).pack(
             side="left", padx=(2, 0))
         self._filter_var.trace_add("write", lambda *_: self._refresh_tree_view())
+
+        # ── Auto-refresh (poll MPOD on a fixed interval) ────────────────
+        self._auto_var = tk.BooleanVar(value=False)
+        ttk.Checkbutton(bar, text="Auto-refresh every",
+                        variable=self._auto_var,
+                        command=self._toggle_autorefresh).pack(
+            side="left", padx=(16, 2))
+        self._interval_var = tk.StringVar(value=str(self._DEFAULT_INTERVAL_MS))
+        interval_entry = ttk.Entry(bar, textvariable=self._interval_var,
+                                   width=6, justify="right")
+        interval_entry.pack(side="left")
+        interval_entry.bind("<Return>", lambda e: self._reschedule_autorefresh())
+        ttk.Label(bar, text="ms", font=_F_SMALL).pack(side="left", padx=(2, 0))
 
         self._status_var = tk.StringVar(value="Not yet probed.")
         ttk.Label(self, textvariable=self._status_var,
@@ -1377,7 +1394,6 @@ class ChannelControlPanel(ttk.Frame):
         row = self._rows.get(ch, {})
         self._sel_var.set(ch)
         self._sel_detail_var.set(
-            f"Name:    {row.get('name') or '?'}\n"
             f"V_set:   {self._fmt(row.get('vset'))} V\n"
             f"V_meas:  {self._fmt(row.get('vmeas'))} V\n"
             f"Switch:  {SWITCH_LABELS.get(row.get('switch'), '?')}\n"
@@ -1385,6 +1401,69 @@ class ChannelControlPanel(ttk.Frame):
         )
         if row.get('vset') is not None:
             self._volt_var.set(f"{row['vset']:.4f}")
+
+    # ── Auto-refresh ──────────────────────────────────────────────────────────
+
+    def _interval_ms(self) -> Optional[int]:
+        """Parse the interval entry, clamped to the minimum. None if invalid."""
+        try:
+            ms = int(float(self._interval_var.get()))
+        except (ValueError, TypeError):
+            return None
+        return max(ms, self._MIN_INTERVAL_MS)
+
+    def _toggle_autorefresh(self) -> None:
+        if self._auto_var.get():
+            if not _SNMP_OK:
+                messagebox.showwarning(
+                    "SNMP unavailable",
+                    "lstar_mpod_ctl.py / puresnmp not available, cannot probe.")
+                self._auto_var.set(False)
+                return
+            ms = self._interval_ms()
+            if ms is None:
+                messagebox.showerror(
+                    "Invalid interval",
+                    "Enter the auto-refresh interval as a number of milliseconds.")
+                self._auto_var.set(False)
+                return
+            self._interval_var.set(str(ms))   # reflect any clamping
+            self._app.log(f"Auto-refresh enabled: every {ms} ms.")
+            self._schedule_autorefresh(ms)
+        else:
+            self._cancel_autorefresh()
+            self._app.log("Auto-refresh disabled.")
+
+    def _reschedule_autorefresh(self) -> None:
+        """Re-read the interval entry and restart the timer if auto is on."""
+        if not self._auto_var.get():
+            return
+        ms = self._interval_ms()
+        if ms is None:
+            return
+        self._interval_var.set(str(ms))
+        self._cancel_autorefresh()
+        self._schedule_autorefresh(ms)
+
+    def _schedule_autorefresh(self, ms: int) -> None:
+        self._cancel_autorefresh()
+        self._autorefresh_job = self.after(ms, self._autorefresh_tick)
+
+    def _cancel_autorefresh(self) -> None:
+        if self._autorefresh_job is not None:
+            self.after_cancel(self._autorefresh_job)
+            self._autorefresh_job = None
+
+    def _autorefresh_tick(self) -> None:
+        self._autorefresh_job = None
+        if not self._auto_var.get():
+            return
+        # Skip this tick if a probe/set is already running, try again next cycle.
+        if not self._app._busy:
+            self._refresh()
+        ms = self._interval_ms()
+        if ms is not None:
+            self._schedule_autorefresh(ms)
 
     # ── Refresh / probe ──────────────────────────────────────────────────────
 
@@ -1427,7 +1506,6 @@ class ChannelControlPanel(ttk.Frame):
                 ch_name, slot, ch_no = suffix_to_label(idx)
                 rows.append({
                     'channel': ch_name,
-                    'name':    decode_str(names[idx]),
                     'vset':    decode_float(v_set.get(idx)),
                     'vmeas':   decode_float(v_meas.get(idx)),
                     'iset':    decode_float(c_set.get(idx)),
@@ -1463,7 +1541,6 @@ class ChannelControlPanel(ttk.Frame):
         tag = "on" if sw == SWITCH_ON else ("off" if sw == SWITCH_OFF else "")
         vals = (
             ch,
-            row.get('name') or '',
             self._fmt(row.get('vset')),
             self._fmt(row.get('vmeas')),
             self._fmt(row.get('iset'), scale=1e3),
@@ -1485,7 +1562,7 @@ class ChannelControlPanel(ttk.Frame):
             row = self._rows.get(ch)
             if row is None:
                 continue
-            if flt and flt not in ch.lower() and flt not in (row.get('name') or '').lower():
+            if flt and flt not in ch.lower():
                 continue
             self._insert_row(row)
         if sel and self._tree.exists(sel[0]):
