@@ -1,3 +1,5 @@
 @echo off
-python3.11 lstar_gui.py
+cd ..
+.\.venv\Scripts\activate
+python src/lstar_gui.py
 exit
