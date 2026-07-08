@@ -1,4 +1,6 @@
 .venv/ 
 .env 
-__pycahce__/ 
-*.pyc 
+__pycache__/ 
+desktop.ini
+lstar_changelog.log
+DESIGN.md
