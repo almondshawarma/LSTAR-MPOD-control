@@ -142,8 +142,8 @@ NumPy · Tkinter (GUI)
 
 Built for the TAMUTRAP collaboration at the Texas A&M University Cyclotron
 Institute, under Dr. Dan Melconian. This material is based upon work supported
-by the U.S. Department of Energy, Office of Science under Award Number
-DE-SC0022469.
+by the U.S. Department of Energy, Office of Science under Awards Number
+DE-SC0022469 and DE-FG02-93ER40773.
 
 ## License
 
