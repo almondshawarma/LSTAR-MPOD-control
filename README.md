@@ -1,5 +1,7 @@
 # LSTAR MPOD Control
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21477368.svg)](https://doi.org/10.5281/zenodo.21477368)
+
 This is a production control system for the electrostatic multipole electrodes of the **L**ight-ion guide **S**eparator for **T**exas A&M's K150 **R**adioactive beams (LSTAR),
 the isobar separator beamline at the Texas A&M Cyclotron Institute, built for
 the for the Low-Energy Radioactive ion beam Area (LERA) primarily for TAMUTRAP,
