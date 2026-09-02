@@ -13,7 +13,7 @@ cylindrical Penning trap, searching for physics beyond the Standard Model with e
 
 To allow for beta decay to even be measured in the first place, the cyclotron creates
 a "cocktail" of various, extremely hot ions. These ions get thermalized, and then 
-LSTAR's multipole electrodes shape and clean the beam, with a M/ΔM ≥ 5000 achieved by two 62.5° dipole magnets.
+LSTAR's multipole electrodes shape and clean the beam, with a M/ΔM ≥ 3000 achieved by two 62.5° dipole magnets.
 Every one of those electrodes is connected to a high-voltage channel on a WIENER MPOD crate that
 this project talks to over SNMP.
 
