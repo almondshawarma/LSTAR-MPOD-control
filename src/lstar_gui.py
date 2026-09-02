@@ -1263,6 +1263,7 @@ class ChannelControlPanel(ttk.Frame):
         self._rows: dict[str, dict] = {}
         self._sort_state: dict[str, bool] = {}
         self._autorefresh_job: Optional[str] = None
+        self._volt_loaded_ch: Optional[str] = None
         self._build()
 
     # ── Layout ───────────────────────────────────────────────────────────────
@@ -1389,6 +1390,7 @@ class ChannelControlPanel(ttk.Frame):
         if not sel:
             self._sel_var.set("(none selected)")
             self._sel_detail_var.set("")
+            self._volt_loaded_ch = None
             return
         ch  = sel[0]
         row = self._rows.get(ch, {})
@@ -1399,8 +1401,11 @@ class ChannelControlPanel(ttk.Frame):
             f"Switch:  {SWITCH_LABELS.get(row.get('switch'), '?')}\n"
             f"Status:  {row.get('status') or '?'}"
         )
-        if row.get('vset') is not None:
-            self._volt_var.set(f"{row['vset']:.4f}")
+        # don't reset value while user is typing
+        if ch != self._volt_loaded_ch:
+            self._volt_loaded_ch = ch
+            if row.get('vset') is not None:
+                self._volt_var.set(f"{row['vset']:.4f}")
 
     # ── Auto-refresh ──────────────────────────────────────────────────────────
 
