@@ -1366,13 +1366,10 @@ class ChannelControlPanel(ttk.Frame):
                 self._app._dry_var.get())
 
     def _launch(self, fn, *args) -> bool:
-        """Run fn in a background thread via the app's busy tracker.Returns
-        False (and warns) if an operation is already in progress."""
-        if self._app._busy:
-            messagebox.showwarning("Busy",
-                                   "An operation is already in progress.")
-            return False
-        self._app._start(fn, *args)
+        """Run fn in a background thread via the app's tracker, and if an op is
+        already in progress (e.g. an auto-refresh probe), then queue this one to run
+        as soon as that finishes instead of dropping it. Always returns True."""
+        self._app._dispatch(fn, *args)
         return True
 
     # ── Selection ────────────────────────────────────────────────────────────
@@ -1767,6 +1764,9 @@ class LSTARApp(tk.Tk):
         self._read_comm  = read_comm
         self._dry_run    = dry_run or (not _SNMP_OK)
         self._busy       = False
+        # single-slot queue, an op requested while busy waits here and runs
+        # the moment the current op finishes, latest request "wins"
+        self._pending: Optional[tuple] = None
 
         self._build_menu()
         self._build_conn_bar()
@@ -1957,11 +1957,9 @@ class LSTARApp(tk.Tk):
             self._on_action("readback")
 
     def _on_action(self, action: str, payload=None) -> None:
-        if self._busy:
-            messagebox.showwarning("Busy",
-                                   "An operation is already in progress.")
-            return
-
+        # No busy-gate here: an op requested while one is running (or while an
+        # auto-refresh probe slips in during a confirmation dialog) is queued by
+        # _dispatch rather than dropped. See _dispatch / _finish.
         host       = self._host_var.get()
         write_comm = self._wcomm_var.get()
         read_comm  = self._rcomm_var.get()
@@ -1975,7 +1973,7 @@ class LSTARApp(tk.Tk):
         ch_map = load_channel_map(None).get(element, {})
 
         if action == "readback":
-            self._start(self._do_readback, element, ch_map, host, read_comm)
+            self._dispatch(self._do_readback, element, ch_map, host, read_comm)
 
         elif action == "zero":
             if not messagebox.askyesno(
@@ -1987,7 +1985,7 @@ class LSTARApp(tk.Tk):
             self._changelog(
                 f"ZERO requested: element={element}, "
                 f"channels={len(ch_map)}, host={host}, dry_run={dry_run}")
-            self._start(self._do_zero, element, ch_map,
+            self._dispatch(self._do_zero, element, ch_map,
                         host, write_comm, dry_run)
 
         elif action == "switch_group":
@@ -2003,7 +2001,7 @@ class LSTARApp(tk.Tk):
                 f"SWITCH {label} requested: element={elem}, "
                 f"channels={sum(1 for c in sw_ch_map.values() if c)}, "
                 f"host={host}, dry_run={dry_run}")
-            self._start(self._do_switch, elem, sw_ch_map, state,
+            self._dispatch(self._do_switch, elem, sw_ch_map, state,
                         host, write_comm, dry_run)
 
         elif action == "switch_channel":
@@ -2013,7 +2011,7 @@ class LSTARApp(tk.Tk):
                 f"SWITCH {label} requested: element={elem}, "
                 f"electrode={electrode}, channel={ch}, "
                 f"host={host}, dry_run={dry_run}")
-            self._start(self._do_switch_channel, elem, electrode, ch, state,
+            self._dispatch(self._do_switch_channel, elem, electrode, ch, state,
                         host, write_comm, dry_run)
 
         elif action == "push":
@@ -2028,7 +2026,7 @@ class LSTARApp(tk.Tk):
             self._changelog(
                 f"PUSH requested: element={elem}, amplitudes={amps}, "
                 f"corrections={corr}, host={host}, dry_run={dry_run}")
-            self._start(self._do_push, elem, final, push_ch_map,
+            self._dispatch(self._do_push, elem, final, push_ch_map,
                         host, write_comm, dry_run)
 
     # ── Thread helpers ───────────────────────────────────────────────────────
@@ -2038,8 +2036,27 @@ class LSTARApp(tk.Tk):
         self._set_status("\u25cf  Working\u2026", _C_AMBER)
         threading.Thread(target=fn, args=args, daemon=True).start()
 
+    def _enqueue(self, fn, *args) -> None:
+        """queue an op to run as soon as the current one finishes, latest value wins"""
+        self._pending = (fn, args)
+        self._set_status("\u25cf  Working (1 queued)\u2026", _C_AMBER)
+
+    def _dispatch(self, fn, *args) -> None:
+        """start fn now if idle, else queue it, callers behind a
+        confirmation dialog use this so an auto-refresh probe that slips in
+        while the dialog is open neither drops the action nor double-launches."""
+        if self._busy:
+            self._enqueue(fn, *args)
+        else:
+            self._start(fn, *args)
+
     def _finish(self) -> None:
         self._busy = False
+        if self._pending is not None:
+            fn, args = self._pending
+            self._pending = None
+            self._start(fn, *args)
+            return
         self._set_status("\u25cf  Ready",
                          _C_GREEN if _SNMP_OK else _C_AMBER)
 
